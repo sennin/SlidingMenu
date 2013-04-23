@@ -64,9 +64,9 @@ public class SlidingMenu extends RelativeLayout {
 	 */
 	public static final int LEFT_RIGHT = 2;
 
-	private CustomViewAbove mViewAbove;
+	private final CustomViewAbove mViewAbove;
 
-	private CustomViewBehind mViewBehind;
+	private final CustomViewBehind mViewBehind;
 
 	private OnOpenListener mOpenListener;
 
@@ -86,7 +86,7 @@ public class SlidingMenu extends RelativeLayout {
 		/**
 		 * On open.
 		 */
-		public void onOpen();
+		public void onOpen(int position);
 	}
 
 	/**
@@ -210,16 +210,21 @@ public class SlidingMenu extends RelativeLayout {
 		mViewAbove.setCustomViewBehind(mViewBehind);
 		mViewBehind.setCustomViewAbove(mViewAbove);
 		mViewAbove.setOnPageChangeListener(new OnPageChangeListener() {
-			public static final int POSITION_OPEN = 0;
-			public static final int POSITION_CLOSE = 1;
+			public static final int POSITION_LEFT_MENU = 0;
+			public static final int POSITION_CONTENT = 1;
+			public static final int POSITION_RIGHT_MENU = 2;
 
+			@Override
 			public void onPageScrolled(int position, float positionOffset,
 					int positionOffsetPixels) { }
 
+			@Override
 			public void onPageSelected(int position) {
-				if (position == POSITION_OPEN && mOpenListener != null) {
-					mOpenListener.onOpen();
-				} else if (position == POSITION_CLOSE && mCloseListener != null) {
+				if (position == POSITION_LEFT_MENU && mOpenListener != null) {
+					mOpenListener.onOpen(position);
+				} else if (position == POSITION_RIGHT_MENU && mOpenListener != null) {
+					mOpenListener.onOpen(position);
+				} else if (position == POSITION_CONTENT && mCloseListener != null) {
 					mCloseListener.onClose();
 				}
 			}
@@ -927,6 +932,7 @@ public class SlidingMenu extends RelativeLayout {
 		/* (non-Javadoc)
 		 * @see android.view.AbsSavedState#writeToParcel(android.os.Parcel, int)
 		 */
+		@Override
 		public void writeToParcel(Parcel out, int flags) {
 			super.writeToParcel(out, flags);
 			out.writeInt(mItem);
@@ -934,10 +940,12 @@ public class SlidingMenu extends RelativeLayout {
 
 		public static final Parcelable.Creator<SavedState> CREATOR =
 				new Parcelable.Creator<SavedState>() {
+			@Override
 			public SavedState createFromParcel(Parcel in) {
 				return new SavedState(in);
 			}
 
+			@Override
 			public SavedState[] newArray(int size) {
 				return new SavedState[size];
 			}
@@ -982,7 +990,7 @@ public class SlidingMenu extends RelativeLayout {
 		return true;
 	}
 	
-	private Handler mHandler = new Handler();
+	private final Handler mHandler = new Handler();
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void manageLayers(float percentOpen) {
@@ -993,6 +1001,7 @@ public class SlidingMenu extends RelativeLayout {
 
 		if (layerType != getContent().getLayerType()) {
 			mHandler.post(new Runnable() {
+				@Override
 				public void run() {
 					Log.v(TAG, "changing layerType. hardware? " + (layerType == View.LAYER_TYPE_HARDWARE));
 					getContent().setLayerType(layerType, null);
